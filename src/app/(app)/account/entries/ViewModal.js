@@ -7,7 +7,7 @@ const ViewModal = ({ isOpen, onClose, entryId }) => {
     const [entryItems, setEntryItems] = useState([])
     const [loading, setLoading] = useState(false)
     const [errorMsg, setErrorMsg] = useState('')
-    const [sendingEmail, setSendingEmail] = useState(false)
+    // const [sendingEmail, setSendingEmail] = useState(false)
 
     useEffect(() => {
         if (isOpen && entryId) {
@@ -26,26 +26,26 @@ const ViewModal = ({ isOpen, onClose, entryId }) => {
         }
     }, [isOpen, entryId])
 
-    const handleSendEmail = () => {
-        // Placeholder for sending email
-        setSendingEmail(true)
-        axios.post(`/api/entries/${entryId}/email`)
-            .then((res) => {
-                if (res.data.status === 'success') {
-                    // Email sent successfully
-                    setErrorMsg('')
-                    // Close modal or handle success as needed
-                } else {
-                    setErrorMsg(res.data.msg || 'Email not sent.')
-                }
-            })
-            .catch(() => {
-                setErrorMsg('An error occurred while sending email.')
-            })
-            .finally(() => {
-                setSendingEmail(false)
-            })
-    }
+    // const handleSendEmail = () => {
+    //     // Placeholder for sending email
+    //     setSendingEmail(true)
+    //     axios.post(`/api/entries/${entryId}/email`)
+    //         .then((res) => {
+    //             if (res.data.status === 'success') {
+    //                 // Email sent successfully
+    //                 setErrorMsg('')
+    //                 // Close modal or handle success as needed
+    //             } else {
+    //                 setErrorMsg(res.data.msg || 'Email not sent.')
+    //             }
+    //         })
+    //         .catch(() => {
+    //             setErrorMsg('An error occurred while sending email.')
+    //         })
+    //         .finally(() => {
+    //             setSendingEmail(false)
+    //         })
+    // }
 
     if (!isOpen) return null
 

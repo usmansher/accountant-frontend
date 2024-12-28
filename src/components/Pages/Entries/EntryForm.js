@@ -4,14 +4,13 @@ import * as Yup from 'yup'
 import DatePicker from 'react-datepicker'
 import Select from 'react-select'
 import 'react-datepicker/dist/react-datepicker.css'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import Totals from './Totals'
 import axios from '@/lib/axios'
 
 const EntryForm = ({ entrytype }) => {
-    const [entryType, setEntryType] = useState(entrytype)
+    const [, setEntryType] = useState(entrytype)
     const { id } = useParams()
-    const router = useRouter()
 
     const [ledgerOptions, setLedgerOptions] = useState([])
     const [tagOptions, setTagOptions] = useState([])

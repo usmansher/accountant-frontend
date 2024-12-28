@@ -12,12 +12,8 @@ const AccountForm = () => {
     const config = useConfigStore(state => state.config)
     if (!config) return <div>Loading config...</div>
 
-    useEffect(() => {
-        console.log(config?.system_variables?.currency_formats)
-    }, [])
-
     const [dateFormat, setDateFormat] = useState('MM/dd/yyyy')
-    const [isPostgres, setIsPostgres] = useState(false)
+    const [isPostgres, ] = useState(false)
 
     const formik = useFormik({
         initialValues: {

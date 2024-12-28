@@ -53,6 +53,10 @@ const EntryTypesPage = () => {
     useEffect(() => {
         fetchEntryTypes()
     }, [])
+
+    if (loading) {
+        return <div>Loading...</div>
+    }
     return (
         <>
             <Header title="Entry Types" />

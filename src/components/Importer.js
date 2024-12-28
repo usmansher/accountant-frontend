@@ -1,4 +1,4 @@
-'use client';
+'use client'
 import React, { useState } from 'react'
 import Papa from 'papaparse'
 import axios from '@/lib/axios'
@@ -392,7 +392,6 @@ const Importer = () => {
                                 </td>
                             </tr>
 
-
                             <tr>
                                 <td>ledger_code *</td>
                                 <td>
@@ -554,7 +553,6 @@ const Importer = () => {
                                     </td>
                                     <td>{row[fieldMapping.narration] || ''}</td>
 
-
                                     <td>{row[fieldMapping.ledger_code]}</td>
                                     <td>{row[fieldMapping.amount]}</td>
                                     <td>
@@ -582,7 +580,7 @@ const Importer = () => {
                 </div>
             )}
 
-            <style >{`
+            <style>{`
                 .importer {
                     padding: 20px;
                     max-width: 1200px;

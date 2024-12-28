@@ -2,7 +2,6 @@
 import { useEffect, useState } from 'react'
 import axios from '@/lib/axios'
 import Header from '@/app/(app)/Header'
-import Button from '@/components/Button'
 import { useRouter } from 'next/navigation'
 import ViewModal from './ViewModal'
 import ConfirmationModal from '@/components/ConfirmationModal'
@@ -87,6 +86,14 @@ const EntriesTable = () => {
     const handleCancelDelete = () => {
         setIsDeleteModalOpen(false)
         setSelectedEntryId(null)
+    }
+
+    if (loading) {
+        return <div>Loading...</div>
+    }
+
+    if (error) {
+        return <div>{error}</div>
     }
 
     return (
