@@ -67,7 +67,7 @@ const GroupForm = ({ id }) => {
                     console.log('Group created:', response.data)
                 }
                 // Redirect or show success message
-                router.push('/groups') // Adjust the route as needed
+                router.push('/account/dashboard') // Adjust the route as needed
             } catch (error) {
                 console.error('Error submitting form:', error)
                 // Handle error (show error message to user)

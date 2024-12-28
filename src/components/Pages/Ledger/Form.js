@@ -89,7 +89,7 @@ const LedgerForm = ({ id }) => {
                     console.log('Ledger created:', response.data)
                 }
                 // Redirect or show success message
-                router.push('/ledgers') // Adjust the route as needed
+                router.push('/account/dashboard') // Adjust the route as needed
             } catch (error) {
                 console.error('Failed to submit the form', error)
                 // Handle error (show error message to user)
