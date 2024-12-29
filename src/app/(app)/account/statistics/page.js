@@ -1,17 +1,13 @@
 'use client'
 import React, { useEffect, useState } from 'react'
-import DataTable from 'react-data-table-component'
 import axios from '@/lib/axios'
 import IncomeExpenseMonthlyChart from './IncomeExpenseMonthlyChart'
 import IncomeExpensePieChart from './IncomeExpensePieChart'
 
 const Statistics = () => {
-    const [, setLedgers] = useState([])
+    const [ledgers, setLedgers] = useState([])
     const [, setAccsummary] = useState({})
     const [, setStatisticsTitle] = useState('')
-    const [accounts, ] = useState([])
-    const [userCount, ] = useState(0)
-    const [activeAccount, ] = useState(null)
     const [loading, setLoading] = useState(true)
 
     const fetchData = async () => {
@@ -25,110 +21,65 @@ const Statistics = () => {
         } catch (error) {
             console.error('Error fetching Statistics data:', error)
         }
-        // finally {
-        //     setLoading(false)
-        // }
     }
 
     useEffect(() => {
         fetchData()
     }, [])
 
-    const columns = [
-        {
-            name: 'Label',
-            selector: row => row.label,
-            sortable: true,
-            cell: row => <em>{row.label}</em>,
-        },
-        {
-            name: 'Name',
-            selector: row => row.name,
-            sortable: true,
-        },
-        {
-            name: 'Fiscal Year',
-            selector: row =>
-                `${new Date(row.fy_start).toLocaleDateString()} to ${new Date(row.fy_end).toLocaleDateString()}`,
-            sortable: true,
-        },
-        {
-            name: 'Status',
-            selector: row => row.status,
-            sortable: true,
-            cell: row => (
-                <a href={row.href} title={row.title}>
-                    <span className={`badge ${row.badgeClass}`}>
-                        {row.label} <i className={row.iconClass}></i>
-                    </span>
-                </a>
-            ),
-        },
-    ]
-
     if (loading) {
         return <div className="p-6">Loading...</div>
     }
 
     return (
-        <section className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                {/* Create Account */}
-                <div className="bg-gray-700 text-white rounded-lg p-6 flex items-center justify-between">
-                    <div>
-                        <h3 className="text-2xl">Create Account</h3>
-                        <p className="text-sm">Create a new account</p>
-                    </div>
+        <>
+            <div className="grid grid-cols-10 gap-6 mt-6">
+                <div className="col-span-7">
+                    <IncomeExpenseMonthlyChart />
                 </div>
-                {/* Manage Accounts */}
-                <div className="bg-gray-700 text-white rounded-lg p-6 flex items-center justify-between">
-                    <div>
-                        <h3 className="text-2xl">{accounts.length}</h3>
-                        <p className="text-sm">Manage Accounts</p>
-                    </div>
-                </div>
-                {/* Manage Users */}
-                <div className="bg-gray-700 text-white rounded-lg p-6 flex items-center justify-between">
-                    <div>
-                        <h3 className="text-2xl">{userCount}</h3>
-                        <p className="text-sm">Manage Users</p>
-                    </div>
-                </div>
-                {/* Settings */}
-                <div className="bg-gray-700 text-white rounded-lg p-6 flex items-center justify-between">
-                    <div>
-                        <h3 className="text-2xl">Settings</h3>
-                        <p className="text-sm">General Settings</p>
-                    </div>
+                <div className="col-span-3">
+                    <IncomeExpensePieChart />
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-                <IncomeExpenseMonthlyChart />
-                <IncomeExpensePieChart />
-            </div>
-            <div className="bg-white shadow rounded-lg p-6">
-                <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-xl">Accounts</h3>
-                    <p className="text-sm">
-                        Current Account:{' '}
-                        <em className="text-lg">
-                            "{activeAccount?.label || 'Default'}"
-                        </em>
-                    </p>
+            <div className="mt-8 flow-root h-96 overflow-auto bg-white shadow sm:rounded-lg">
+                <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+                    <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+                        <table
+                            className="min-w-full divide-y divide-gray-200"
+                            id="ledgers_table">
+                            <thead className="bg-gray-50 sticky">
+                                <tr>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Label
+                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Balance
+                                    </th>
+                                </tr>
+                            </thead>
+
+                            <tbody className="divide-y divide-gray-200">
+                                {ledgers.map(ledger => (
+                                    <tr key={ledger.id}>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="text-sm text-gray-900">
+                                                {ledger.name}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="text-sm text-gray-900">
+                                                {ledger.balance}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-                <DataTable
-                    columns={columns}
-                    data={accounts}
-                    pagination={false}
-                    fixedHeader
-                    fixedHeaderScrollHeight="200px"
-                    highlightOnHover
-                    responsive
-                    noHeader
-                />
             </div>
-        </section>
+        </>
     )
 }
 

@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import GroupItem from './GroupItem'
 import { useRouter } from 'next/navigation'
 import Button from '@/components/Button'
+import toast from 'react-hot-toast'
 
 const Dashboard = () => {
     const [data, setData] = useState(null)
@@ -14,10 +15,9 @@ const Dashboard = () => {
             .get('/api/chart-of-account')
             .then(res => {
                 setData(res?.data)
-                console.log(res?.data.children_groups)
             })
-            .catch(error => {
-                console.error('Error fetching data:', error)
+            .catch(() => {
+                toast.error('Failed to load chart of accounts')
             })
     }, [])
 

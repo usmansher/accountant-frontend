@@ -14,7 +14,7 @@ const EntryForm = ({ entrytype }) => {
 
     const [ledgerOptions, setLedgerOptions] = useState([])
     const [tagOptions, setTagOptions] = useState([])
-    const [loading, setLoading] = useState(true)
+    const [, setLoading] = useState(true)
     const [initialValues, setInitialValues] = useState({
         number: '',
         date: new Date(),

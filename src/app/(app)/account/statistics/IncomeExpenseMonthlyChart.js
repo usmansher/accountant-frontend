@@ -70,7 +70,7 @@ const IncomeExpenseMonthlyChart = () => {
     }
 
     return (
-        <div className="bg-white shadow rounded-lg p-6">
+        <div className="bg-white shadow rounded-lg p-6 grid-cols-2 ">
             <h3 className="text-xl mb-4">Income vs. Expense Monthly Chart</h3>
             {chartData ? (
                 <Line
