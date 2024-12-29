@@ -142,9 +142,9 @@ const EntryForm = ({ entrytype }) => {
             .min(1, 'At least one entry is required'),
     })
 
-    if (loading || !entrytype) {
-        return <div className="container mx-auto p-4">Loading...</div>
-    }
+    // if (loading || !entrytype) {
+    //     return <div className="container mx-auto p-4">Loading...</div>
+    // }
 
     return (
         <div className="container mx-auto p-4">

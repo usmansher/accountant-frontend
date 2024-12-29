@@ -85,6 +85,15 @@ export default function BalanceSheetPage() {
                             {renderAccountTree(data.assets)}
                             <tr className="font-bold bg-gray-100">
                                 <td>Total Assets</td>
+                                <td className="text-right">{data.assets_total} D</td>
+                            </tr>
+                            <tr className="font-bold bg-gray-100">
+                                <td>Profit & Loss Account {data.pandl > 0 ? '(Net Profit)' : '(Net Loss)'}</td>
+                                <td className="text-right">{Math.abs(data.pandl)} D</td>
+                            </tr>
+
+                            <tr className="font-bold bg-gray-100">
+                                <td>Total Assets</td>
                                 <td className="text-right">{data.final_assets_total} D</td>
                             </tr>
                         </tbody>
@@ -105,15 +114,26 @@ export default function BalanceSheetPage() {
                             {renderAccountTree(data.liabilities)}
                             <tr className="font-bold bg-gray-100">
                                 <td>Total Liabilities & Equity</td>
+                                <td className="text-right">{data.liabilities_total} C</td>
+                            </tr>
+                            {/* Difference in opening balance */}
+                            {data.opdiff?.opdiff_balance_dc == 'C' && (
+                                <tr className="font-bold bg-gray-100 text-red-500">
+                                    <td>Diff in O/P Balance</td>
+                                    <td className="text-right">{data.opdiff.opdiff_balance} {data.opdiff.opdiff_balance_dc}</td>
+                                </tr>
+                            )}
+
+                            <tr className="font-bold bg-gray-100">
+                                <td>Total Liabilities & Equity</td>
                                 <td className="text-right">{data.final_liabilities_total} C</td>
                             </tr>
+									
                         </tbody>
                     </table>
                 </div>
             </div>
 
-            {/* Additional info like P&L, OpDiff can also be shown if needed */}
-            {/* For example: */}
             {data.is_opdiff && (
                 <div className="mt-4 text-red-500">
                     Opening Difference Detected: {data.opdiff.opdiff_balance} {data.opdiff.opdiff_balance_dc}
