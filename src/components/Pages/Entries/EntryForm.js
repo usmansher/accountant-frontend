@@ -88,7 +88,7 @@ const EntryForm = ({ entrytype }) => {
                     amount: entry.amount,
                     narration: entry.narration,
                 })),
-                notes: data.notes,
+                narration: data.narration,
                 newEntry: {
                     dc: 'D',
                     ledger: null,
@@ -166,7 +166,7 @@ const EntryForm = ({ entrytype }) => {
                             amount: parseFloat(entry.amount),
                             narration: entry.narration,
                         })),
-                        notes: values.notes,
+                        narration: values.narration,
                     }
 
                     try {
@@ -447,11 +447,11 @@ const EntryForm = ({ entrytype }) => {
 
                             <div className="mt-6">
                                 <label className="block text-sm font-medium text-gray-700">
-                                    Notes
+                                    Note
                                 </label>
                                 <Field
                                     as="textarea"
-                                    name="notes"
+                                    name="narration"
                                     rows="3"
                                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
                                 />
