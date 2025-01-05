@@ -4,8 +4,17 @@ import React, { useEffect, useState } from 'react'
 import EntryForm from '@/components/Pages/Entries/EntryForm'
 import { useParams } from 'next/navigation'
 import axios from '@/lib/axios'
+import { useAuth } from '@/hooks/auth'
+import { useRouter } from 'next/router'
 
 const EntryPage = () => {
+    const { hasPermission } = useAuth()
+    const router = useRouter()
+  
+    if (!hasPermission('add-entries')) {
+      router.back()
+    }
+
     const { entrytype } = useParams()
 
     const [entryType, setEntryType] = useState(null)

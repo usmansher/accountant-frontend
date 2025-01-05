@@ -1,9 +1,17 @@
 'use client'
 
+import { useAuth } from '@/hooks/auth'
 import axios from '@/lib/axios'
+import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
 export default function ProfitLossPage() {
+    const { hasPermission } = useAuth()
+    const router = useRouter()
+
+    if (!hasPermission('reports-profit-loss')) {
+        router.back()
+    }
     const [data, setData] = useState(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)

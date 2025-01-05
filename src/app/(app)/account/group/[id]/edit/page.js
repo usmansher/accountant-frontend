@@ -1,7 +1,15 @@
 import Header from '@/app/(app)/Header'
 import GroupForm from '@/components/Pages/Groups/Form'
+import { useAuth } from '@/hooks/auth'
+import { useRouter } from 'next/navigation'
 
 export default function EditGroupPage({ params }) {
+    const { hasPermission } = useAuth()
+    const router = useRouter()
+
+    if (!hasPermission('edit-groups')) {
+        router.back()
+    }
     return (
         <>
             <Header title={`Edit Group`} />

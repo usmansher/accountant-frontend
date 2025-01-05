@@ -7,7 +7,11 @@ export const useAuth = ({ middleware, redirectIfAuthenticated } = {}) => {
     const router = useRouter()
     const params = useParams()
 
-    const { data: user, error, mutate } = useSWR('/api/user', () =>
+    const {
+        data: user,
+        error,
+        mutate,
+    } = useSWR('/api/user', () =>
         axios
             .get('/api/user')
             .then(res => res.data)
@@ -109,6 +113,23 @@ export const useAuth = ({ middleware, redirectIfAuthenticated } = {}) => {
         if (middleware === 'auth' && error) logout()
     }, [user, error])
 
+    const hasRole = role => {
+        return !!user?.roles?.find(role_ => role_.name === role)
+    }
+
+    const hasPermission = permission => {
+        return (
+            hasRole('superadmin') ||
+            !!user?.roles?.[0]?.permissions?.find(
+                permission_ => permission_.name === permission,
+            )
+        )
+    }
+
+    const getRole = () => {
+        return user?.roles?.map(role => role.name)
+    }
+
     return {
         user,
         register,
@@ -117,5 +138,8 @@ export const useAuth = ({ middleware, redirectIfAuthenticated } = {}) => {
         resetPassword,
         resendEmailVerification,
         logout,
+        hasRole,
+        getRole,
+        hasPermission,
     }
 }

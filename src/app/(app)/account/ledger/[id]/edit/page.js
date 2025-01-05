@@ -1,7 +1,15 @@
 import Header from '@/app/(app)/Header'
 import LedgerForm from '@/components/Pages/Ledger/Form'
+import { useAuth } from '@/hooks/auth'
+import { useRouter } from 'next/navigation'
 
 export default function EditLedgerPage({ params }) {
+    const { hasPermission } = useAuth()
+    const router = useRouter()
+
+    if (!hasPermission('edit-ledgers')) {
+        router.back()
+    }
     return (
         <>
             <Header title="Edit Ledger" />

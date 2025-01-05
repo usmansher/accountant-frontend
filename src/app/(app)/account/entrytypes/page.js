@@ -4,8 +4,17 @@ import EntryTypeModal from './EntryTypeModal'
 import toast from 'react-hot-toast'
 import axios from '@/lib/axios'
 import Header from '../../Header'
+import { useAuth } from '@/hooks/auth'
+import { useRouter } from 'next/navigation'
 
 const EntryTypesPage = () => {
+    const { hasPermission } = useAuth()
+    const router = useRouter()
+
+    if (!hasPermission('list-entry-types')) {
+        router.back()
+    }
+
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editData, setEditData] = useState(null) // data if editing existing entry types
 
@@ -63,11 +72,13 @@ const EntryTypesPage = () => {
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     <div className="flex justify-start items-center pb-6 space-x-4 ">
-                        <button
-                            onClick={() => handleOpenModal()}
-                            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 mb-4">
-                            Add New Entry Type
-                        </button>
+                        {hasPermission('create-entry-types') && (
+                            <button
+                                onClick={() => handleOpenModal()}
+                                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 mb-4">
+                                Add New Entry Type
+                            </button>
+                        )}
                     </div>
 
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
@@ -123,13 +134,19 @@ const EntryTypesPage = () => {
                                                     {et.zero_padding}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                                    <button
-                                                        onClick={() =>
-                                                            handleOpenModal(et)
-                                                        }
-                                                        className="text-blue-600 hover:text-blue-900">
-                                                        Edit
-                                                    </button>
+                                                    {hasPermission(
+                                                        'edit-entry-types',
+                                                    ) && (
+                                                        <button
+                                                            onClick={() =>
+                                                                handleOpenModal(
+                                                                    et,
+                                                                )
+                                                            }
+                                                            className="text-blue-600 hover:text-blue-900">
+                                                            Edit
+                                                        </button>
+                                                    )}
                                                 </td>
                                             </tr>
                                         ))}

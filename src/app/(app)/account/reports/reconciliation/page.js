@@ -1,9 +1,18 @@
 'use client'
 
+import { useAuth } from '@/hooks/auth'
 import axios from '@/lib/axios'
+import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 
 export default function ReconciliationPage() {
+    const { hasPermission } = useAuth()
+    const router = useRouter()
+
+    if (!hasPermission('reports-reconciliation')) {
+        router.back()
+    }
+
     const [ledgers, setLedgers] = useState({})
     const [ledgerId, setLedgerId] = useState(0)
     const [startdate, setStartdate] = useState('')

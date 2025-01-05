@@ -6,9 +6,11 @@ import GroupItem from './GroupItem'
 import { useRouter } from 'next/navigation'
 import Button from '@/components/Button'
 import toast from 'react-hot-toast'
+import { useAuth } from '@/hooks/auth'
 
 const Dashboard = () => {
     const [data, setData] = useState(null)
+    const { hasPermission } = useAuth()
     const router = useRouter()
     useEffect(() => {
         axios
@@ -33,18 +35,23 @@ const Dashboard = () => {
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     <div className="flex justify-start items-center pb-6 space-x-4 ">
-                        <Button
-                            onClick={() => router.push('/account/ledger/create')}
-                            type="button"
-                        >
-                            Add Ledger
-                        </Button>
-                        <Button
-                            onClick={() => router.push('/account/group/create')}
-                            type="button"
-                        >
-                            Add Group
-                        </Button>
+                        
+                        {hasPermission('create-ledgers') && (
+                            <Button
+                                onClick={() => router.push('/account/ledger/create')}
+                                type="button"
+                            >
+                                Add Ledger
+                            </Button>
+                        )}
+                        {hasPermission('create-groups') && (
+                            <Button
+                                onClick={() => router.push('/account/group/create')}
+                                type="button"
+                            >
+                                Add Group
+                            </Button>
+                        )}
                     </div>
 
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">

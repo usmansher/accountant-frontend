@@ -1,9 +1,18 @@
 'use client'
 
+import { useAuth } from '@/hooks/auth'
 import axios from '@/lib/axios'
+import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 
 export default function BalanceSheetPage() {
+    const { hasPermission } = useAuth()
+    const router = useRouter()
+
+    if (!hasPermission('reports-balance-sheet')) {
+        router.back()
+    }
+
     const [data, setData] = useState(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)

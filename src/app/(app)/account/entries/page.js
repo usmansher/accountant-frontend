@@ -7,18 +7,23 @@ import ViewModal from './ViewModal'
 import ConfirmationModal from '@/components/ConfirmationModal'
 import { FaPencilAlt, FaTrash } from 'react-icons/fa'
 import { Dropdown } from 'flowbite-react'
+import { useAuth } from '@/hooks/auth'
 
 const EntriesTable = () => {
+    const { hasPermission } = useAuth()
+    const router = useRouter()
+
+    if (!hasPermission('list-entries')) {
+        router.back()
+    }
+
     const [entries, setEntries] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
     const [selectedEntryId, setSelectedEntryId] = useState(null)
-
     const [entrytypes, setEntryTypes] = useState([])
-
-    const router = useRouter()
 
     const fetchEntries = () => {
         setLoading(true)
@@ -102,19 +107,21 @@ const EntriesTable = () => {
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     <div className="flex justify-start items-center pb-6 space-x-4 ">
-                        <Dropdown label="Add Entry" dismissOnClick={false}>
-                            {entrytypes.map(type => (
-                                <Dropdown.Item
-                                    key={type.id}
-                                    onClick={() =>
-                                        router.push(
-                                            `/account/entries/add/${type.id}`,
-                                        )
-                                    }>
-                                    {type.label}
-                                </Dropdown.Item>
-                            ))}
-                        </Dropdown>
+                        {hasPermission('create-entries') && (
+                            <Dropdown label="Add Entry" dismissOnClick={false}>
+                                {entrytypes.map(type => (
+                                    <Dropdown.Item
+                                        key={type.id}
+                                        onClick={() =>
+                                            router.push(
+                                                `/account/entries/add/${type.id}`,
+                                            )
+                                        }>
+                                        {type.label}
+                                    </Dropdown.Item>
+                                ))}
+                            </Dropdown>
+                        )}
                     </div>
 
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
@@ -193,32 +200,44 @@ const EntriesTable = () => {
                                                         {entry.cr_total}
                                                     </td>
                                                     <td className="px-6 flex gap-2 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                        <button
-                                                            onClick={() =>
-                                                                handleView(
-                                                                    entry.id,
-                                                                )
-                                                            }
-                                                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                                                            title="View Entry">
-                                                            View
-                                                        </button>
-                                                        <a
-                                                            href={`/account/entries/${entry.id}`}
-                                                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                                                            title="Edit Entry">
-                                                            <FaPencilAlt />
-                                                        </a>
-                                                        <button
-                                                            onClick={() =>
-                                                                handleDeleteClick(
-                                                                    entry.id,
-                                                                )
-                                                            }
-                                                            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-                                                            title="Delete Entry">
-                                                            <FaTrash />
-                                                        </button>
+                                                        {hasPermission(
+                                                            'list-entries',
+                                                        ) && (
+                                                            <button
+                                                                onClick={() =>
+                                                                    handleView(
+                                                                        entry.id,
+                                                                    )
+                                                                }
+                                                                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                                                                title="View Entry">
+                                                                View
+                                                            </button>
+                                                        )}
+                                                        {hasPermission(
+                                                            'edit-entries',
+                                                        ) && (
+                                                            <a
+                                                                href={`/account/entries/${entry.id}`}
+                                                                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                                                                title="Edit Entry">
+                                                                <FaPencilAlt />
+                                                            </a>
+                                                        )}
+                                                        {hasPermission(
+                                                            'delete-entries',
+                                                        ) && (
+                                                            <button
+                                                                onClick={() =>
+                                                                    handleDeleteClick(
+                                                                        entry.id,
+                                                                    )
+                                                                }
+                                                                className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+                                                                title="Delete Entry">
+                                                                <FaTrash />
+                                                            </button>
+                                                        )}
                                                     </td>
                                                 </tr>
                                             ))

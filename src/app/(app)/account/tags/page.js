@@ -5,8 +5,17 @@ import toast, { Toaster } from 'react-hot-toast'
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
 import Header from '../../Header'
+import { useAuth } from '@/hooks/auth'
+import { useRouter } from 'next/navigation'
 
 export default function TagsPage() {
+    const { hasPermission } = useAuth()
+    const router = useRouter()
+
+    if (!hasPermission('list-tags')) {
+        router.back()
+    }
+
     const [tags, setTags] = useState([])
     const [loading, setLoading] = useState(false)
     const [showModal, setShowModal] = useState(false)
@@ -106,14 +115,16 @@ export default function TagsPage() {
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     <div className="flex justify-start items-center pb-6 space-x-4">
-                        <button
-                            onClick={() => {
-                                resetForm()
-                                setShowModal(true)
-                            }}
-                            className="bg-blue-500 text-white px-4 py-2 rounded mb-4">
-                            Add New Tag
-                        </button>
+                        {hasPermission('create-tags') && (
+                            <button
+                                onClick={() => {
+                                    resetForm()
+                                    setShowModal(true)
+                                }}
+                                className="bg-blue-500 text-white px-4 py-2 rounded mb-4">
+                                Add New Tag
+                            </button>
+                        )}
                     </div>
                     <Toaster />
 
@@ -124,31 +135,29 @@ export default function TagsPage() {
                         <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                             <div className="bg-white border-b border-gray-200">
                                 <div className="relative overflow-x-auto">
-                                    <table className="min-w-full divide-y divide-gray-200" id="entries_table">
+                                    <table
+                                        className="min-w-full divide-y divide-gray-200"
+                                        id="entries_table">
                                         <thead className="bg-gray-50">
                                             <tr>
-                                            <th
-                                                scope="col"
-                                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                                            >
+                                                <th
+                                                    scope="col"
+                                                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                     Title
                                                 </th>
                                                 <th
-                                                scope="col"
-                                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                                            >
+                                                    scope="col"
+                                                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                     Color
                                                 </th>
                                                 <th
-                                                scope="col"
-                                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                                            >
+                                                    scope="col"
+                                                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                     Background
                                                 </th>
                                                 <th
-                                                scope="col"
-                                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                                            >
+                                                    scope="col"
+                                                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                     Actions
                                                 </th>
                                             </tr>
@@ -156,7 +165,7 @@ export default function TagsPage() {
                                         <tbody>
                                             {tags.map(tag => (
                                                 <tr key={tag.id}>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                                         {tag.title}
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -166,22 +175,32 @@ export default function TagsPage() {
                                                         {tag.background}
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                        <button
-                                                            onClick={() =>
-                                                                handleEdit(tag)
-                                                            }
-                                                            className="bg-yellow-500 text-white px-2 py-1 rounded">
-                                                            Edit
-                                                        </button>
-                                                        <button
-                                                            onClick={() =>
-                                                                handleDelete(
-                                                                    tag.id,
-                                                                )
-                                                            }
-                                                            className="bg-red-500 text-white px-2 py-1 ml-2 rounded">
-                                                            Delete
-                                                        </button>
+                                                        {hasPermission(
+                                                            'edit-tags',
+                                                        ) && (
+                                                            <button
+                                                                onClick={() =>
+                                                                    handleEdit(
+                                                                        tag,
+                                                                    )
+                                                                }
+                                                                className="bg-yellow-500 text-white px-2 py-1 rounded">
+                                                                Edit
+                                                            </button>
+                                                        )}
+                                                        {hasPermission(
+                                                            'delete-tags',
+                                                        ) && (
+                                                            <button
+                                                                onClick={() =>
+                                                                    handleDelete(
+                                                                        tag.id,
+                                                                    )
+                                                                }
+                                                                className="bg-red-500 text-white px-2 py-1 ml-2 rounded">
+                                                                Delete
+                                                            </button>
+                                                        )}
                                                     </td>
                                                 </tr>
                                             ))}

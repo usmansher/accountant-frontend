@@ -1,12 +1,20 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import EntryForm from '@/components/Pages/Entries/EntryForm'
 import axios from '@/lib/axios'
+import { useAuth } from '@/hooks/auth'
 
 const EntryPage = () => {
   const params = useParams()
+  const { hasPermission } = useAuth()
+  const router = useRouter()
+
+  if (!hasPermission('edit-entries')) {
+    router.back()
+  }
+  
   const { id } = params
 
   const [entry, setEntry] = useState(null)

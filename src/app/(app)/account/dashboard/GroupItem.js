@@ -3,8 +3,10 @@ import LedgerItem from './LedgerItem'
 import { useRouter } from 'next/navigation'
 import axios from '@/lib/axios'
 import toast from 'react-hot-toast'
+import { useAuth } from '@/hooks/auth'
 
 const GroupItem = ({ group, depth = 0 }) => {
+    const { hasPermission } = useAuth()
     const router = useRouter()
     const editGroup = () => {
         router.push(`/account/group/${group.id}/edit`)
@@ -36,16 +38,21 @@ const GroupItem = ({ group, depth = 0 }) => {
                     <td className="px-6 py-4">{group.cl_total}</td>
                     {group?.id && (
                         <td className="px-6 py-4 flex gap-2">
-                            <Button
-                                className="btn btn-sm"
-                                onClick={() => editGroup()}>
-                                Edit
-                            </Button>
-                            <Button
-                                className="btn btn-sm"
-                                onClick={() => deleteGroup()}>
-                                Delete
-                            </Button>
+                            {hasPermission('edit-groups') && (
+                                <Button
+                                    className="btn btn-sm"
+                                    onClick={() => editGroup()}>
+                                    Edit
+                                </Button>
+                            )}
+
+                            {hasPermission('delete-groups') && (
+                                <Button
+                                    className="btn btn-sm"
+                                    onClick={() => deleteGroup()}>
+                                    Delete
+                                </Button>
+                            )}
                         </td>
                     )}
                 </tr>
