@@ -58,7 +58,21 @@ const navItems = [
         href: '/account/entries',
         permission: 'list-entries',
         needActiveAccount: true,
-        children: [],
+        children: [
+            {
+                label: 'List All Entries',
+                href: '/account/entries',
+                permission: 'list-entries',
+                needActiveAccount: true,
+            },
+            {
+                label: 'Import Entries',
+                href: '/account/entries/import',
+                permission: 'create-entries',
+                needActiveAccount: true,
+            },
+
+        ],
     },
     {
         label: 'Reports',

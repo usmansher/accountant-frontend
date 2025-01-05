@@ -3,25 +3,74 @@ import React, { useState } from 'react'
 import Papa from 'papaparse'
 import axios from '@/lib/axios'
 
+// This function creates & downloads a sample CSV
+const handleDownloadSample = () => {
+    const sampleData = [
+        {
+            entry_number: '1001',
+            entry_date: '1/5/25',
+            entry_type_id: 'receipt',
+            tag_id: 'TAG-123',
+            entry_narration: 'Sale to customer',
+            ledger_code: 'LEDGER-101',
+            dc: 'D',
+            amount: '500',
+            item_narration: 'Cash side',
+            item_reconciliation_date: '',
+        },
+        {
+            entry_number: '1001',
+            entry_date: '1/5/25',
+            entry_type_id: 'receipt',
+            tag_id: 'TAG-123',
+            entry_narration: 'Sale to customer',
+            ledger_code: 'LEDGER-202',
+            dc: 'C',
+            amount: '500',
+            item_narration: 'Revenue side',
+            item_reconciliation_date: '',
+        },
+        {
+            entry_number: '1002',
+            entry_date: '1/6/25',
+            entry_type_id: 'receipt',
+            tag_id: '',
+            entry_narration: 'Office supplies',
+            ledger_code: 'LEDGER-555',
+            dc: 'D',
+            amount: '200',
+            item_narration: 'Stationery item',
+            item_reconciliation_date: '2/1/25',
+        },
+    ]
+
+    const csv = Papa.unparse(sampleData)
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', 'sample_entries.csv')
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+}
+
 const Importer = () => {
     const [csvData, setCsvData] = useState([])
     const [headers, setHeaders] = useState([])
     const [fieldMapping, setFieldMapping] = useState({
-        // Entry Fields
-        entry_id: '',
+        // Fields for your simpler CSV
+        entry_number: '',
+        entry_date: '',
+        entry_type_id: '',
         tag_id: '',
-        entrytype_id: '',
-        number: '',
-        date: '',
-        dr_total: '',
-        cr_total: '',
-        narration: '',
-        // Entry Item Fields
+        entry_narration: '',
         ledger_code: '',
+        dc: '',
         amount: '',
         item_narration: '',
-        dc: '',
-        reconciliation_date: '',
+        item_reconciliation_date: '',
     })
     const [isMapped, setIsMapped] = useState(false)
     const [uploading, setUploading] = useState(false)
@@ -39,25 +88,25 @@ const Importer = () => {
                 setCsvData(results.data)
                 setHeaders(results.meta.fields)
                 setIsMapped(false)
-                setFieldMapping({
-                    entry_id: '',
-                    tag_id: '',
-                    entrytype_id: '',
-                    number: '',
-                    date: '',
-                    dr_total: '',
-                    cr_total: '',
-                    narration: '',
-                    ledger_code: '',
-                    amount: '',
-                    item_narration: '',
-                    dc: '',
-                    reconciliation_date: '',
+            
+                // Auto-match identical columns
+                const autoMapped = {}
+                results.meta.fields.forEach(header => {
+                    // If the header name is exactly one of our fieldMapping keys,
+                    // set fieldMapping[header] = header automatically
+                    if (Object.prototype.hasOwnProperty.call(fieldMapping, header)) {
+                        autoMapped[header] = header
+                    }
                 })
+            
+                setFieldMapping(prev => ({
+                    ...prev,
+                    ...autoMapped,
+                }))
+            
                 setFeedback(null)
             },
-            error: function (error) {
-                console.error('Error parsing CSV:', error)
+            error: function () {
                 setFeedback({
                     type: 'error',
                     message: 'Error parsing CSV file.',
@@ -77,24 +126,13 @@ const Importer = () => {
     // Submit mapped data to backend
     const handleSubmit = async () => {
         // Validate that required mappings are present
-        const requiredEntryFields = ['entrytype_id', 'date']
-        const requiredItemFields = ['ledger_code', 'amount', 'dc']
+        const requiredFields = ['entry_date', 'entry_type_id', 'ledger_code', 'dc', 'amount']
 
-        for (let field of requiredEntryFields) {
+        for (let field of requiredFields) {
             if (!fieldMapping[field]) {
                 setFeedback({
                     type: 'error',
-                    message: `Please map the required entry field: ${field}`,
-                })
-                return
-            }
-        }
-
-        for (let field of requiredItemFields) {
-            if (!fieldMapping[field]) {
-                setFeedback({
-                    type: 'error',
-                    message: `Please map the required entry item field: ${field}`,
+                    message: `Please map the required field: ${field}`,
                 })
                 return
             }
@@ -104,36 +142,30 @@ const Importer = () => {
         setFeedback(null)
 
         try {
-            // Prepare the data by grouping entry_items under each entry
+            // Prepare the data by grouping items under each entry (by entry_number)
             const entriesMap = {}
 
             csvData.forEach(row => {
-                const entryId = row[fieldMapping.entry_id] || generateUUID()
-                if (!entriesMap[entryId]) {
-                    entriesMap[entryId] = {
-                        // Entry Fields
-                        id: row[fieldMapping.entry_id] || generateUUID(),
+                const entryRef = row[fieldMapping.entry_number] || generateUUID()
+
+                if (!entriesMap[entryRef]) {
+                    entriesMap[entryRef] = {
+                        entry_number: row[fieldMapping.entry_number] || null,
+                        entry_date: row[fieldMapping.entry_date],
+                        entry_type_id: row[fieldMapping.entry_type_id],
                         tag_id: row[fieldMapping.tag_id] || null,
-                        entrytype_id: row[fieldMapping.entrytype_id],
-                        number: row[fieldMapping.number] || null,
-                        date: row[fieldMapping.date],
-                        dr_total: row[fieldMapping.dr_total] || 0.0,
-                        cr_total: row[fieldMapping.cr_total] || 0.0,
-                        narration: row[fieldMapping.narration] || null,
-                        // Entry Items
-                        entry_items: [],
+                        entry_narration: row[fieldMapping.entry_narration] || null,
+                        items: [],
                     }
                 }
 
-                // Add entry item
-                entriesMap[entryId].entry_items.push({
-                    id: generateUUID(),
+                entriesMap[entryRef].items.push({
                     ledger_code: row[fieldMapping.ledger_code],
-                    amount: row[fieldMapping.amount],
-                    narration: row[fieldMapping.item_narration] || null,
                     dc: row[fieldMapping.dc],
-                    reconciliation_date:
-                        row[fieldMapping.reconciliation_date] || null,
+                    amount: row[fieldMapping.amount],
+                    item_narration: row[fieldMapping.item_narration] || null,
+                    item_reconciliation_date:
+                        row[fieldMapping.item_reconciliation_date] || null,
                 })
             })
 
@@ -153,19 +185,16 @@ const Importer = () => {
                 setCsvData([])
                 setHeaders([])
                 setFieldMapping({
-                    entry_id: '',
+                    entry_number: '',
+                    entry_date: '',
+                    entry_type_id: '',
                     tag_id: '',
-                    entrytype_id: '',
-                    number: '',
-                    date: '',
-                    dr_total: '',
-                    cr_total: '',
-                    narration: '',
+                    entry_narration: '',
                     ledger_code: '',
+                    dc: '',
                     amount: '',
                     item_narration: '',
-                    dc: '',
-                    reconciliation_date: '',
+                    item_reconciliation_date: '',
                 })
                 setIsMapped(false)
             } else {
@@ -185,22 +214,24 @@ const Importer = () => {
         }
     }
 
-    // Utility function to generate UUID (if needed)
+    // Utility function to generate a simple UUID
     const generateUUID = () => {
-        // Simple UUID generator (for demonstration purposes)
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(
-            /[xy]/g,
-            function (c) {
-                const r = (Math.random() * 16) | 0,
-                    v = c === 'x' ? r : (r & 0x3) | 0x8
-                return v.toString(16)
-            },
-        )
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+            const r = (Math.random() * 16) | 0,
+                v = c === 'x' ? r : (r & 0x3) | 0x8
+            return v.toString(16)
+        })
     }
 
     return (
         <div className="importer">
-            <h2>Import Entries with Entry Items CSV</h2>
+            <h2>Import Entries (CSV)</h2>
+
+            {/* Download Sample CSV Button */}
+            <button onClick={handleDownloadSample} className="download-sample">
+                Download Sample CSV
+            </button>
+
             <input type="file" accept=".csv" onChange={handleFileUpload} />
 
             {csvData.length > 0 && (
@@ -214,355 +245,108 @@ const Importer = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {/* Entry Fields */}
-                            <tr>
-                                <td>entry_id (Optional)</td>
-                                <td>
-                                    <select
-                                        value={fieldMapping.entry_id}
-                                        onChange={e =>
-                                            handleMappingChange(
-                                                'entry_id',
-                                                e.target.value,
-                                            )
-                                        }>
-                                        <option value="">
-                                            -- Select CSV Column --
-                                        </option>
-                                        {headers.map(header => (
-                                            <option key={header} value={header}>
-                                                {header}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>tag_id (Nullable)</td>
-                                <td>
-                                    <select
-                                        value={fieldMapping.tag_id}
-                                        onChange={e =>
-                                            handleMappingChange(
-                                                'tag_id',
-                                                e.target.value,
-                                            )
-                                        }>
-                                        <option value="">
-                                            -- Select CSV Column --
-                                        </option>
-                                        {headers.map(header => (
-                                            <option key={header} value={header}>
-                                                {header}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>entrytype_id *</td>
-                                <td>
-                                    <select
-                                        value={fieldMapping.entrytype_id}
-                                        onChange={e =>
-                                            handleMappingChange(
-                                                'entrytype_id',
-                                                e.target.value,
-                                            )
-                                        }>
-                                        <option value="">
-                                            -- Select CSV Column --
-                                        </option>
-                                        {headers.map(header => (
-                                            <option key={header} value={header}>
-                                                {header}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>number (Nullable)</td>
-                                <td>
-                                    <select
-                                        value={fieldMapping.number}
-                                        onChange={e =>
-                                            handleMappingChange(
-                                                'number',
-                                                e.target.value,
-                                            )
-                                        }>
-                                        <option value="">
-                                            -- Select CSV Column --
-                                        </option>
-                                        {headers.map(header => (
-                                            <option key={header} value={header}>
-                                                {header}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>date *</td>
-                                <td>
-                                    <select
-                                        value={fieldMapping.date}
-                                        onChange={e =>
-                                            handleMappingChange(
-                                                'date',
-                                                e.target.value,
-                                            )
-                                        }>
-                                        <option value="">
-                                            -- Select CSV Column --
-                                        </option>
-                                        {headers.map(header => (
-                                            <option key={header} value={header}>
-                                                {header}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>dr_total</td>
-                                <td>
-                                    <select
-                                        value={fieldMapping.dr_total}
-                                        onChange={e =>
-                                            handleMappingChange(
-                                                'dr_total',
-                                                e.target.value,
-                                            )
-                                        }>
-                                        <option value="">
-                                            -- Select CSV Column --
-                                        </option>
-                                        {headers.map(header => (
-                                            <option key={header} value={header}>
-                                                {header}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>cr_total</td>
-                                <td>
-                                    <select
-                                        value={fieldMapping.cr_total}
-                                        onChange={e =>
-                                            handleMappingChange(
-                                                'cr_total',
-                                                e.target.value,
-                                            )
-                                        }>
-                                        <option value="">
-                                            -- Select CSV Column --
-                                        </option>
-                                        {headers.map(header => (
-                                            <option key={header} value={header}>
-                                                {header}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>narration</td>
-                                <td>
-                                    <select
-                                        value={fieldMapping.narration}
-                                        onChange={e =>
-                                            handleMappingChange(
-                                                'narration',
-                                                e.target.value,
-                                            )
-                                        }>
-                                        <option value="">
-                                            -- Select CSV Column --
-                                        </option>
-                                        {headers.map(header => (
-                                            <option key={header} value={header}>
-                                                {header}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <td>ledger_code *</td>
-                                <td>
-                                    <select
-                                        value={fieldMapping.ledger_code}
-                                        onChange={e =>
-                                            handleMappingChange(
-                                                'ledger_code',
-                                                e.target.value,
-                                            )
-                                        }>
-                                        <option value="">
-                                            -- Select CSV Column --
-                                        </option>
-                                        {headers.map(header => (
-                                            <option key={header} value={header}>
-                                                {header}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>amount *</td>
-                                <td>
-                                    <select
-                                        value={fieldMapping.amount}
-                                        onChange={e =>
-                                            handleMappingChange(
-                                                'amount',
-                                                e.target.value,
-                                            )
-                                        }>
-                                        <option value="">
-                                            -- Select CSV Column --
-                                        </option>
-                                        {headers.map(header => (
-                                            <option key={header} value={header}>
-                                                {header}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>item_narration</td>
-                                <td>
-                                    <select
-                                        value={fieldMapping.item_narration}
-                                        onChange={e =>
-                                            handleMappingChange(
-                                                'item_narration',
-                                                e.target.value,
-                                            )
-                                        }>
-                                        <option value="">
-                                            -- Select CSV Column --
-                                        </option>
-                                        {headers.map(header => (
-                                            <option key={header} value={header}>
-                                                {header}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>dc *</td>
-                                <td>
-                                    <select
-                                        value={fieldMapping.dc}
-                                        onChange={e =>
-                                            handleMappingChange(
-                                                'dc',
-                                                e.target.value,
-                                            )
-                                        }>
-                                        <option value="">
-                                            -- Select CSV Column --
-                                        </option>
-                                        {headers.map(header => (
-                                            <option key={header} value={header}>
-                                                {header}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>reconciliation_date</td>
-                                <td>
-                                    <select
-                                        value={fieldMapping.reconciliation_date}
-                                        onChange={e =>
-                                            handleMappingChange(
-                                                'reconciliation_date',
-                                                e.target.value,
-                                            )
-                                        }>
-                                        <option value="">
-                                            -- Select CSV Column --
-                                        </option>
-                                        {headers.map(header => (
-                                            <option key={header} value={header}>
-                                                {header}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </td>
-                            </tr>
+                            <MappingRow
+                                label="entry_number (Optional)"
+                                value={fieldMapping.entry_number}
+                                headers={headers}
+                                onChange={val => handleMappingChange('entry_number', val)}
+                            />
+                            <MappingRow
+                                label="entry_date *"
+                                value={fieldMapping.entry_date}
+                                headers={headers}
+                                onChange={val => handleMappingChange('entry_date', val)}
+                            />
+                            <MappingRow
+                                label="entry_type_id *"
+                                value={fieldMapping.entry_type_id}
+                                headers={headers}
+                                onChange={val => handleMappingChange('entry_type_id', val)}
+                            />
+                            <MappingRow
+                                label="tag_id (Optional)"
+                                value={fieldMapping.tag_id}
+                                headers={headers}
+                                onChange={val => handleMappingChange('tag_id', val)}
+                            />
+                            <MappingRow
+                                label="entry_narration (Optional)"
+                                value={fieldMapping.entry_narration}
+                                headers={headers}
+                                onChange={val => handleMappingChange('entry_narration', val)}
+                            />
+                            <MappingRow
+                                label="ledger_code *"
+                                value={fieldMapping.ledger_code}
+                                headers={headers}
+                                onChange={val => handleMappingChange('ledger_code', val)}
+                            />
+                            <MappingRow
+                                label="dc * (D or C)"
+                                value={fieldMapping.dc}
+                                headers={headers}
+                                onChange={val => handleMappingChange('dc', val)}
+                            />
+                            <MappingRow
+                                label="amount *"
+                                value={fieldMapping.amount}
+                                headers={headers}
+                                onChange={val => handleMappingChange('amount', val)}
+                            />
+                            <MappingRow
+                                label="item_narration (Optional)"
+                                value={fieldMapping.item_narration}
+                                headers={headers}
+                                onChange={val =>
+                                    handleMappingChange('item_narration', val)
+                                }
+                            />
+                            <MappingRow
+                                label="item_reconciliation_date (Optional)"
+                                value={fieldMapping.item_reconciliation_date}
+                                headers={headers}
+                                onChange={val =>
+                                    handleMappingChange('item_reconciliation_date', val)
+                                }
+                            />
                         </tbody>
                     </table>
-                    <button onClick={() => setIsMapped(true)}>
-                        Proceed to Import
-                    </button>
+                    <button onClick={() => setIsMapped(true)}>Proceed to Import</button>
                 </div>
             )}
 
             {isMapped && (
                 <div className="preview-section">
-                    <h3>Preview Data</h3>
+                    <h3>Preview First 5 Rows</h3>
                     <table>
                         <thead>
                             <tr>
-                                {/* Entry Headers */}
-                                <th>Entry ID</th>
-                                <th>Tag ID</th>
-                                <th>Entry Type ID</th>
-                                <th>Number</th>
-                                <th>Date</th>
-                                <th>Dr Total</th>
-                                <th>Cr Total</th>
-                                <th>Narration</th>
-                                <th>Item ID</th>
-                                <th>Ledger ID</th>
-                                <th>Amount</th>
-                                <th>Item Narration</th>
-                                <th>DC</th>
-                                <th>Reconciliation Date</th>
+                                <th>entry_number</th>
+                                <th>entry_date</th>
+                                <th>entry_type_id</th>
+                                <th>tag_id</th>
+                                <th>entry_narration</th>
+                                <th>ledger_code</th>
+                                <th>dc</th>
+                                <th>amount</th>
+                                <th>item_narration</th>
+                                <th>item_reconciliation_date</th>
                             </tr>
                         </thead>
                         <tbody>
                             {csvData.slice(0, 5).map((row, index) => (
                                 <tr key={index}>
-                                    {/* Entry Data */}
-                                    <td>
-                                        {row[fieldMapping.entry_id] ||
-                                            generateUUID()}
-                                    </td>
+                                    <td>{row[fieldMapping.entry_number] || ''}</td>
+                                    <td>{row[fieldMapping.entry_date] || ''}</td>
+                                    <td>{row[fieldMapping.entry_type_id] || ''}</td>
                                     <td>{row[fieldMapping.tag_id] || ''}</td>
-                                    <td>{row[fieldMapping.entrytype_id]}</td>
-                                    <td>{row[fieldMapping.number] || ''}</td>
-                                    <td>{row[fieldMapping.date]}</td>
+                                    <td>{row[fieldMapping.entry_narration] || ''}</td>
+                                    <td>{row[fieldMapping.ledger_code] || ''}</td>
+                                    <td>{row[fieldMapping.dc] || ''}</td>
+                                    <td>{row[fieldMapping.amount] || ''}</td>
+                                    <td>{row[fieldMapping.item_narration] || ''}</td>
                                     <td>
-                                        {row[fieldMapping.dr_total] || '0.00'}
-                                    </td>
-                                    <td>
-                                        {row[fieldMapping.cr_total] || '0.00'}
-                                    </td>
-                                    <td>{row[fieldMapping.narration] || ''}</td>
-
-                                    <td>{row[fieldMapping.ledger_code]}</td>
-                                    <td>{row[fieldMapping.amount]}</td>
-                                    <td>
-                                        {row[fieldMapping.item_narration] || ''}
-                                    </td>
-                                    <td>{row[fieldMapping.dc]}</td>
-                                    <td>
-                                        {row[
-                                            fieldMapping.reconciliation_date
-                                        ] || ''}
+                                        {row[fieldMapping.item_reconciliation_date] || ''}
                                     </td>
                                 </tr>
                             ))}
@@ -591,8 +375,7 @@ const Importer = () => {
                     border-collapse: collapse;
                     margin-bottom: 20px;
                 }
-                th,
-                td {
+                th, td {
                     border: 1px solid #ccc;
                     padding: 8px;
                     text-align: left;
@@ -611,7 +394,7 @@ const Importer = () => {
                     color: #721c24;
                 }
                 .download-sample {
-                    margin-top: 20px;
+                    margin-right: 20px;
                     padding: 10px 20px;
                     background-color: #0070f3;
                     color: white;
@@ -622,8 +405,30 @@ const Importer = () => {
                 .download-sample:hover {
                     background-color: #005bb5;
                 }
+                .mapping-section, .preview-section {
+                    margin-top: 20px;
+                }
             `}</style>
         </div>
+    )
+}
+
+// Reusable row component for mapping
+const MappingRow = ({ label, value, headers, onChange }) => {
+    return (
+        <tr>
+            <td>{label}</td>
+            <td>
+                <select value={value} onChange={e => onChange(e.target.value)}>
+                    <option value="">-- Select CSV Column --</option>
+                    {headers.map(header => (
+                        <option key={header} value={header}>
+                            {header}
+                        </option>
+                    ))}
+                </select>
+            </td>
+        </tr>
     )
 }
 

@@ -1,8 +1,12 @@
 'use client'
+import Header from '@/app/(app)/Header'
 import Importer from '@/components/Importer'
 import { useAuth } from '@/hooks/auth'
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/navigation'
 import React from 'react'
+
+
+
 
 const ImportPage = () => {
     const { hasPermission } = useAuth()
@@ -13,7 +17,9 @@ const ImportPage = () => {
     }
     return (
         <div>
-            <h1>Import Entries</h1>
+            <Header title="Import Entries" />
+
+
             <Importer />
         </div>
     )
