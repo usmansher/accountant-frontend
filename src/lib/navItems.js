@@ -104,6 +104,12 @@ const navItems = [
                 permission: 'reports-reconciliation',
                 needActiveAccount: true,
             },
+            {
+                label: 'Activity Log',
+                href: '/account/reports/activity-log',
+                permission: 'reports-activity-log',
+                needActiveAccount: true
+            }
         ],
     },
     {
