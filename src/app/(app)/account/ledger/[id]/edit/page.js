@@ -1,3 +1,4 @@
+'use client'
 import Header from '@/app/(app)/Header'
 import LedgerForm from '@/components/Pages/Ledger/Form'
 import { useAuth } from '@/hooks/auth'

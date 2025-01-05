@@ -1,3 +1,4 @@
+'use client'
 import Importer from '@/components/Importer'
 import { useAuth } from '@/hooks/auth'
 import { useRouter } from 'next/router'

@@ -13,7 +13,7 @@ import { useAuth } from '@/hooks/auth'
 import { navItems } from '@/lib/navItems' // Single array of nav items
 
 const Navigation = ({ user }) => {
-  const { hasPermission, logout } = useAuth()
+  const { hasPermission, logout, isLoading } = useAuth()
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
 
@@ -32,9 +32,11 @@ const Navigation = ({ user }) => {
       return true
     }
 
+    console.log('Checking permission:', item.permission)
     // 3) If there's a permission, check it
     return hasPermission(item.permission)
   }
+  if (isLoading) return null
 
   return (
     <nav className="bg-white border-b border-gray-100">

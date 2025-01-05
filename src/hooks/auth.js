@@ -119,7 +119,7 @@ export const useAuth = ({ middleware, redirectIfAuthenticated } = {}) => {
 
     const hasPermission = permission => {
         return (
-            hasRole('superadmin') ||
+            hasRole('admin') ||
             !!user?.roles?.[0]?.permissions?.find(
                 permission_ => permission_.name === permission,
             )
@@ -141,5 +141,6 @@ export const useAuth = ({ middleware, redirectIfAuthenticated } = {}) => {
         hasRole,
         getRole,
         hasPermission,
+        isLoading: !user && !error,
     }
 }

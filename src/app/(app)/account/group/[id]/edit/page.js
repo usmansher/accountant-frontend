@@ -1,3 +1,4 @@
+'use client'
 import Header from '@/app/(app)/Header'
 import GroupForm from '@/components/Pages/Groups/Form'
 import { useAuth } from '@/hooks/auth'
