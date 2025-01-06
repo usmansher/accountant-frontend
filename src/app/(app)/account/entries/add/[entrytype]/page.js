@@ -5,7 +5,7 @@ import EntryForm from '@/components/Pages/Entries/EntryForm'
 import { useParams } from 'next/navigation'
 import axios from '@/lib/axios'
 import { useAuth } from '@/hooks/auth'
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/navigation'
 
 const EntryPage = () => {
     const { hasPermission } = useAuth()
